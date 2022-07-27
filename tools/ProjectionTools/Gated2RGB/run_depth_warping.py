@@ -1,3 +1,4 @@
+from calendar import c
 from tools.ProjectionTools.Gated2RGB.lib.warp_gatedimage import WarpingClass
 from tools.ProjectionTools.Gated2RGB.lib.data_loader import load_vehicle_speed, load_time, load_stearing_ange
 from tools.Raw2LUTImages.conversion_lib.process import Rectify_image
@@ -116,19 +117,20 @@ class DepthWarpingWrapper():
 if __name__ == '__main__':
     args = parsArgs()
     if args.debug:
-        cv2.namedWindow("DEBUG", cv2.WINDOW_NORMAL)
+        pass
+        # cv2.namedWindow("DEBUG", cv2.WINDOW_NORMAL) # commented out because of server connection issues
     T = DepthWarpingWrapper(source_dir=args.root, dest_root=args.root, suffix=args.suffix, DEBUG=args.debug, depthfolder=args.depth_folder)
     T2 = None
     if args.debug:
         T2 = DepthWarpingWrapper(source_dir=args.root, dest_root=args.root, suffix=args.suffix+'_no_correction', DEBUG=args.debug, depthfolder=args.depth_folder)
-        cv2.namedWindow('DEBUG', cv2.WINDOW_NORMAL)
+        # cv2.namedWindow('DEBUG', cv2.WINDOW_NORMAL) # commented out because of server connection issues
 
     # Read files
     files = os.listdir(os.path.join(args.root, 'cam_stereo_left'))
-    print(files)
+    print('files: ', files)
     for key in files:
         key = key.split('.tiff')[0]
-        print(key)
+        print('key: ', key)
         delta0 = float(load_time('gated0',key)[1] - load_time('rgb', key)[1])/10**9
         delta1 = float(load_time('gated1',key)[1] - load_time('rgb', key)[1])/10**9
         delta2 = float(load_time('gated2',key)[1] - load_time('rgb', key)[1])/10**9
@@ -139,7 +141,7 @@ if __name__ == '__main__':
         }
         speed = load_vehicle_speed(args.root, key)/3.6 # conversion from km/h to m/s.
         angle = load_stearing_ange(args.root, key)/520*30 # conversion from steering angle to heading. Assumption of 3 steering wheel rotations from end to end and a maximum heading of 30°.
-
+        print('angle: ', angle)
 
         data = T.read_data_and_process(key, speed, delays, angle)
         img1, rgb1, output1 = T.save_gated_data(data, key)
@@ -153,10 +155,13 @@ if __name__ == '__main__':
             }
             data2 = T2.read_data_and_process(key, speed, delays2, 0)
             img2, rgb2, output2 = T2.save_gated_data(data2, key)
-            cv2.imshow('DEBUG', np.hstack((img1, img2)))
-            print(speed, angle, delays['gated0'])
+            cv2.imwrite('DEBUG1.tiff', np.hstack((img1, img2)))
+            # cv2.imshow('DEBUG', np.hstack((img1, img2))) # original line
+            print('speed, angle, delays[\'gated0\']: ', speed, angle, delays['gated0'])
             cv2.waitKey()
-            cv2.imshow('DEBUG', np.hstack((output1, output2)))
+            cv2.imwrite('DEBUG2.tiff', np.hstack((output1, output2)))
+            # cv2.imshow('DEBUG', np.hstack((output1, output2))) # original line
             cv2.waitKey()
-            cv2.imshow('DEBUG', np.vstack((np.hstack((rgb1, output1)),np.hstack((img1, img2)))))
+            cv2.imwrite('DEBUG3.tiff', np.vstack((np.hstack((rgb1, output1)),np.hstack((img1, img2)))))
+            # cv2.imshow('DEBUG', np.vstack((np.hstack((rgb1, output1)),np.hstack((img1, img2))))) # original line
             cv2.waitKey()
