@@ -105,8 +105,11 @@ class DepthWarpingWrapper():
                     path = os.path.join(self.dest_root, folder.split('_')[0] + '_' + self.suffix + '_debug')
                     if not os.path.exists(path):
                        os.makedirs(path)
+                    print(os.path.join(path, key + '.png'))
                     cv2.imwrite(os.path.join(path, key + '.png'), overlay1)
+                # takes the maximum value along axis = -1 as a uint8 and transposes so that it is Height x Width x Depth ?
                 output = np.max((data['gated_data']['gated0_raw'],data['gated_data']['gated1_raw'],data['gated_data']['gated2_raw']),axis=-1).astype(np.uint8).transpose((1,2,0))
+                print("output shape:")
                 print(output.shape, data['image_data']['cam_stereo_left'].shape)
                 # cvtColor() converts an image from one color space to another
                 overlay = cv2.addWeighted(data['image_data']['cam_stereo_left'], alpha,
@@ -178,5 +181,9 @@ if __name__ == '__main__':
             cv2.imwrite('DEBUG3.tiff', np.vstack((np.hstack((rgb1, output1)),np.hstack((img1, img2)))))
             # original line:
             # cv2.imshow('DEBUG', np.vstack((np.hstack((rgb1, output1)),np.hstack((img1, img2))))) 
-            cv2.imwrite('DEBUG4.tiff', np.hstack((rgb1, rgb2)))
+            cv2.imwrite('RGB1_RGB2.tiff', np.hstack((rgb1, rgb2)))
             cv2.waitKey()
+            # path0 = '/example_data/gated0_psm_warped_debug/2018-02-06_14-25-51_00400.png'
+            # path1 = '/example_data/gated1_psm_warped_debug/2018-02-06_14-25-51_00400.png'
+            # cv2.imwrite('psm_warped_debug.tiff', np.hstack((path0, path1)))
+            # cv2.waitKey()
